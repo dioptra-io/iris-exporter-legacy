@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "iris-exporter"
+version = "0.1.0"
+description = ""
+authors = ["Maxime Mouchet <max@maxmouchet.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.25.1"
+diamond-miner = { path = 'diamond-miner', develop = true }
+tqdm = "^4.60.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

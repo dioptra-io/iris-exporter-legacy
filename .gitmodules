@@ -1,0 +1,3 @@
+[submodule "diamond-miner"]
+	path = diamond-miner
+	url = git@github.com:dioptra-io/diamond-miner.git
