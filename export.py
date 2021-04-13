@@ -46,7 +46,7 @@ def do_export_tables(database, host, tables):
         cmd = "clickhouse-client"
         cmd += f" --host={host}"
         cmd += f" --database={database}"
-        cmd += f" --query=\"SELECT * FROM {table} INTO OUTFILE '{table}.clickhouse' FORMAT Native\""  # noqa
+        cmd += f" --query=\"SELECT * FROM {table} INTO OUTFILE 'exports/{table}.clickhouse' FORMAT Native\""  # noqa
         logging.info(cmd)
         subprocess.run(cmd, check=True, shell=True)
 
@@ -58,7 +58,7 @@ def do_export_nodes(client, tables, subsets, uuid):
         it = q.execute_iter(client, table, subsets)
         for row in tqdm(it, desc="Query"):
             nodes.add(row[0].ipv4_mapped or row[0])
-    with Path(f"nodes_{uuid}.txt").open("w") as f:
+    with Path(f"exports/nodes_{uuid}.txt").open("w") as f:
         f.writelines(str(x) + "\n" for x in tqdm(nodes, desc="Write"))
 
 
@@ -71,7 +71,7 @@ def do_export_links(client, tables, subsets, uuid):
             a = row[0].ipv4_mapped or row[0]
             b = row[1].ipv4_mapped or row[1]
             links.add((a, b))
-    with Path(f"links_{uuid}.txt").open("w") as f:
+    with Path(f"exports/links_{uuid}.txt").open("w") as f:
         f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links, desc="Write"))
 
 
