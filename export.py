@@ -31,11 +31,20 @@ def end_time(measurement):
     return datetime.fromisoformat(measurement["end_time"])
 
 
+def clickhouse_uuid(uuid):
+    return uuid.replace("-", "_")
+
+
+def iris_uuid(uuid):
+    return uuid.replace("_", "-")
+
+
 def find_tables(client, uuid):
-    uuid = uuid.replace("-", "_")
     res = client.execute(
         f"""
-    SELECT name FROM system.tables WHERE name LIKE 'results__%{uuid}%'
+    SELECT name
+    FROM system.tables
+    WHERE name LIKE 'results__%{clickhouse_uuid(uuid)}%'
     """
     )
     return [x[0] for x in res]
@@ -59,7 +68,7 @@ def do_export_nodes(client, tables, subsets, uuid):
         it = q.execute_iter(client, table, subsets)
         for row in tqdm(it, desc="Query"):
             nodes.add(row[0].ipv4_mapped or row[0])
-    with Path(f"exports/nodes_{uuid}.txt").open("w") as f:
+    with Path(f"exports/nodes_{clickhouse_uuid(uuid)}.txt").open("w") as f:
         f.writelines(str(x) + "\n" for x in tqdm(nodes, desc="Write"))
 
 
@@ -72,7 +81,7 @@ def do_export_links(client, tables, subsets, uuid):
             a = row[0].ipv4_mapped or row[0]
             b = row[1].ipv4_mapped or row[1]
             links.add((a, b))
-    with Path(f"exports/links_{uuid}.txt").open("w") as f:
+    with Path(f"exports/links_{clickhouse_uuid(uuid)}.txt").open("w") as f:
         f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links, desc="Write"))
 
 
@@ -101,9 +110,6 @@ def main(
         print("One of --tag or --uuid must be specified.")
         return
 
-    if uuid:
-        uuid = uuid.replace("_", "-")
-
     logging.basicConfig(level=logging.INFO)
 
     logging.info("Authenticating...")
@@ -130,8 +136,8 @@ def main(
         uuid = last["uuid"]
 
     logging.info("Getting measurement information...")
-    res = request("GET", f"/measurements/{uuid}", headers=headers)
-    Path(f"exports/{uuid}.json").write_text(json.dumps(res, indent=4))
+    res = request("GET", f"/measurements/{iris_uuid(uuid)}", headers=headers)
+    Path(f"exports/{clickhouse_uuid(uuid)}.json").write_text(json.dumps(res, indent=4))
 
     logging.info(f"Listing tables with uuid {uuid}...")
     client = Client(host, database=database)
