@@ -68,7 +68,7 @@ def do_export_nodes(client, tables, subsets, uuid):
         it = q.execute_iter(client, table, subsets)
         for row in tqdm(it, desc="Query"):
             nodes.add(row[0].ipv4_mapped or row[0])
-    with Path(f"exports/nodes_{clickhouse_uuid(uuid)}.txt").open("w") as f:
+    with Path(f"exports/{clickhouse_uuid(uuid)}.nodes").open("w") as f:
         f.writelines(str(x) + "\n" for x in tqdm(nodes, desc="Write"))
 
 
@@ -77,11 +77,12 @@ def do_export_links(client, tables, subsets, uuid):
     links = set()
     for table in tables:
         it = q.execute_iter(client, table, subsets)
-        for row in tqdm(it, desc="Query"):
-            a = row[0].ipv4_mapped or row[0]
-            b = row[1].ipv4_mapped or row[1]
-            links.add((a, b))
-    with Path(f"exports/links_{clickhouse_uuid(uuid)}.txt").open("w") as f:
+        for _, _, links_ in tqdm(it, desc="Query"):
+            for a, b in links_:
+                a = a.ipv4_mapped or a
+                b = b.ipv4_mapped or b
+                links.add((a, b))
+    with Path(f"exports/{clickhouse_uuid(uuid)}.links").open("w") as f:
         f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links, desc="Write"))
 
 
