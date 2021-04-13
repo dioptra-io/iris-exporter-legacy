@@ -62,7 +62,7 @@ def main():
     tables = find_tables(client, "46b45b0a-72fc-4a94-86e7-1efcd8bdb2c2")
     print(tables)
 
-    subsets = ip_network("0.0.0.0/0").subnets(new_prefix=4)
+    subsets = list(ip_network("0.0.0.0/0").subnets(new_prefix=4))
 
     logging.info("Processing nodes...")
     q = GetNodes(filter_destination=True, filter_private=True, time_exceeded_only=True)
@@ -73,8 +73,12 @@ def main():
         for row in tqdm(it, desc="GetNodes"):
             nodes.add(row[0].ipv4_mapped or row[0])
 
+    logging.info("Sorting nodes...")
+    nodes = sorted(nodes)
+
+    logging.info("Writing nodes...")
     with Path("nodes.txt").open("w") as f:
-        f.writelines(str(x) + "\n" for x in sorted(nodes))
+        f.writelines(str(x) + "\n" for x in tqdm(nodes))
 
     del nodes
 
@@ -89,8 +93,12 @@ def main():
             b = row[1].ipv4_mapped or row[1]
             links.add((a, b))
 
+    logging.info("Sorting links...")
+    links = sorted(links)
+
+    logging.info("Writing links...")
     with Path("links.txt").open("w") as f:
-        f.writelines(f"{str(a)},{str(b)}\n" for a, b in sorted(links))
+        f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links))
 
     del links
 
