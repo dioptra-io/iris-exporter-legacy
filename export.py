@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 from datetime import datetime
 from ipaddress import ip_network
 from pathlib import Path
@@ -39,6 +40,41 @@ def find_tables(client, uuid):
     return [x[0] for x in res]
 
 
+def do_export_tables(database, host, tables):
+    for table in tables:
+        logging.info(f"Exporting {table}...")
+        cmd = "clickhouse-client"
+        cmd += f" --host={host}"
+        cmd += f" --database={database}"
+        cmd += f" --query=\"SELECT * FROM {table} INTO OUTFILE '{table}.clickhouse' FORMAT Native\""  # noqa
+        logging.info(cmd)
+        subprocess.run(cmd, check=True, shell=True)
+
+
+def do_export_nodes(client, tables, subsets, uuid):
+    q = GetNodes(filter_destination=True, filter_private=True, time_exceeded_only=True)
+    nodes = set()
+    for table in tables:
+        it = q.execute_iter(client, table, subsets)
+        for row in tqdm(it, desc="Query"):
+            nodes.add(row[0].ipv4_mapped or row[0])
+    with Path(f"nodes_{uuid}.txt").open("w") as f:
+        f.writelines(str(x) + "\n" for x in tqdm(nodes, desc="Write"))
+
+
+def do_export_links(client, tables, subsets, uuid):
+    q = GetLinks(filter_destination=True, filter_private=True, time_exceeded_only=True)
+    links = set()
+    for table in tables:
+        it = q.execute_iter(client, table, subsets)
+        for row in tqdm(it, desc="Query"):
+            a = row[0].ipv4_mapped or row[0]
+            b = row[1].ipv4_mapped or row[1]
+            links.add((a, b))
+    with Path(f"links_{uuid}.txt").open("w") as f:
+        f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links, desc="Write"))
+
+
 def main(
     tag: Optional[str] = typer.Option(
         None,
@@ -47,6 +83,13 @@ def main(
     ),
     uuid: Optional[str] = typer.Option(
         None, metavar="UUID", help="Export the measurement with the specified UUID."
+    ),
+    export_nodes: bool = typer.Option(True, is_flag=True),
+    export_links: bool = typer.Option(True, is_flag=True),
+    export_tables: bool = typer.Option(
+        True,
+        is_flag=True,
+        help="Dump the tables in native format (requires clickhouse-client).",
     ),
     database: Optional[str] = typer.Option("iris", metavar="DATABASE"),
     host: Optional[str] = typer.Option(
@@ -90,37 +133,14 @@ def main(
 
     subsets = list(ip_network("0.0.0.0/0").subnets(new_prefix=4))
 
-    logging.info("Processing nodes...")
-    q = GetNodes(filter_destination=True, filter_private=True, time_exceeded_only=True)
-    nodes = set()
+    if export_tables:
+        do_export_tables(database, host, tables)
 
-    for table in tables:
-        it = q.execute_iter(client, table, subsets)
-        for row in tqdm(it, desc="GetNodes"):
-            nodes.add(row[0].ipv4_mapped or row[0])
+    if export_nodes:
+        do_export_nodes(client, tables, subsets, uuid)
 
-    logging.info("Writing nodes...")
-    with Path(f"nodes_{uuid}.txt").open("w") as f:
-        f.writelines(str(x) + "\n" for x in tqdm(nodes))
-
-    del nodes
-
-    logging.info("Processing links...")
-    q = GetLinks(filter_destination=True, filter_private=True, time_exceeded_only=True)
-    links = set()
-
-    for table in tables:
-        it = q.execute_iter(client, table, subsets)
-        for row in tqdm(it, desc="GetLinks"):
-            a = row[0].ipv4_mapped or row[0]
-            b = row[1].ipv4_mapped or row[1]
-            links.add((a, b))
-
-    logging.info("Writing links...")
-    with Path(f"links_{uuid}.txt").open("w") as f:
-        f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links))
-
-    del links
+    if export_links:
+        do_export_links(client, tables, subsets, uuid)
 
 
 if __name__ == "__main__":
