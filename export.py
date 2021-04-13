@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import subprocess
@@ -100,6 +101,9 @@ def main(
         print("One of --tag or --uuid must be specified.")
         return
 
+    if uuid:
+        uuid = uuid.replace("_", "-")
+
     logging.basicConfig(level=logging.INFO)
 
     logging.info("Authenticating...")
@@ -124,6 +128,10 @@ def main(
             return
         last = sorted(res, key=end_time)[-1]
         uuid = last["uuid"]
+
+    logging.info("Getting measurement information...")
+    res = request("GET", f"/measurements/{uuid}", headers=headers)
+    Path(f"exports/{uuid}.json").write_text(json.dumps(res, indent=4))
 
     logging.info(f"Listing tables with uuid {uuid}...")
     client = Client(host, database=database)
