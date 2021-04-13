@@ -1,2 +1,9 @@
 # iris-exporter
 Scripts for exporting data from Iris.
+
+```bash
+poetry install
+export IRIS_USERNAME=... IRIS_PASSWORD=...
+poetry run python export.py --tag ...
+poetry run python export.py --uuid ...
+```
