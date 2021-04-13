@@ -1,3 +1,15 @@
+# Iris data dumps
+
+File | Description
+-----|------------
+`uuid.json` | Measurement information (`GET /measurements/{uuid}`)
+`uuid.nodes` | Nodes (one per line)
+`uuid.links` | Links (one per line)
+`results__uuid__agent.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
+
+
+## Schema
+
 Column | Type | Comments
 -------|------|---------
 `probe_src_addr`    | IPv6
