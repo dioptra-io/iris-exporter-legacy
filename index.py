@@ -28,17 +28,15 @@ def main():
     metas = sorted(metas, key=lambda x: datetime.fromisoformat(x[0]["start_time"]))
 
     md = ""
-    template = "{:<10} | {:<20} | {:<20} | {:<14} | {:<10} | {:<10}"
-    md += (
-        template.format("UUID", "Start", "End", "Duration (h)", "Nodes", "Links") + "\n"
-    )
+    template = "{:<10} | {:<20} | {:<20} | {:<16} | {:<10} | {:<10}"
+    md += template.format("UUID", "Start", "End", "Duration", "Nodes", "Links") + "\n"
     md += template.format("--", "--", "--", "--", "--", "--") + "\n"
     for meta, nodes, links in metas:
         md += template.format(
             meta["uuid"].split("-")[0],
             meta["start_time"],
             meta["end_time"],
-            (end_time(meta) - start_time(meta)).seconds // 3600,
+            str(end_time(meta) - start_time(meta)),
             nodes,
             links,
         )
