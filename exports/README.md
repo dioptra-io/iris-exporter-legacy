@@ -34,15 +34,15 @@ Column              | Type          | Comments
 
 ## Changelog
 
-## 30/04/2021
+### 30/04/2021
 
 The `probe_protocol` column is added, to allow for multi-protocol measurements.
 
-## 08/05/2021
+### 08/05/2021
 
 We now encode `checkum(caracal_id, probe_dst_addr, probe_src_port, probe_ttl_l4)` in the IP header ID field, instead of the probe TTL (previously, `probe_ttl_l3`).
 This allows us to drop invalid replies. As such the number of anomalous values in the database should be greatly reduced (TTLs > 32, probe_src_port < 24000, private probe_dst_addr, etc.).
 
-## 16/05/2021
+### 16/05/2021
 
 The RTT column precision is reduced to 32 bits as its maximum value is 6553.5 ms.
