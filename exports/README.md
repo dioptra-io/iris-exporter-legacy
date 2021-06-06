@@ -19,8 +19,9 @@ Column              | Type          | Comments
 `probe_dst_addr`    | IPv6          |
 `probe_src_port`    | UInt16        | For ICMP the "source port" is encoded in the checksum field
 `probe_dst_port`    | UInt16        |
-`probe_ttl_l3`      | UInt8         | Always 0 since 08/05/2021
-`probe_ttl_l4`      | UInt8         |
+`probe_ttl_l3`      | UInt8         | Always 0 since 08/05/2021. Removed since 04/06/2021.
+`probe_ttl_l4`      | UInt8         | Renamed to `probe_ttl` since 04/06/2021.
+`quoted_ttl`        | UInt8         | New since 04/06/2021.
 `probe_protocol`    | UInt8         | 1 for ICMP, 58 for ICMPv6, 17 for UDP (since 30/04/2021).
 `reply_src_addr`    | IPv6          |
 `reply_protocol`    | UInt8         | 1 for ICMP, 58 for ICMPv6
@@ -46,3 +47,8 @@ This allows us to drop invalid replies. As such the number of anomalous values i
 ### 16/05/2021
 
 The RTT column precision is reduced to 32 bits as its maximum value is 6553.5 ms.
+
+### 04/06/2021
+
+The `probe_ttl_l4` column has been renamed to `probe_ttl` and the `probe_ttl_l3` column has been removed.
+We now store `quoted_ttl`, the TTL of the probe packet as seen by the host who generated the ICMP reply.
