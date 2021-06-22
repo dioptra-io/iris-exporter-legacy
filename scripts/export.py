@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import asyncio
 import json
 import logging
@@ -20,54 +21,54 @@ async def execute(host: str, database: str, statement: str) -> None:
 
 
 async def do_export_links(
-    host: str, database: str, measurement_id: str, path: str
+    host: str, database: str, destination: str, measurement_id: str
 ) -> None:
     logging.info(
-        "export_links host=%s database=%s measurement_id=%s path=%s",
+        "export_links host=%s database=%s destination=%s measurement_id=%s",
         host,
         database,
+        destination,
         measurement_id,
-        path,
     )
     query = f"""
     {GetLinks().statement(measurement_id)}
-    INTO OUTFILE '{path}'
+    INTO OUTFILE '{destination}/{measurement_id}.links'
     FORMAT CSV
     """
     await execute(host, database, query)
 
 
 async def do_export_nodes(
-    host: str, database: str, measurement_id: str, path: str
+    host: str, database: str, destination: str, measurement_id: str
 ) -> None:
     logging.info(
-        "export_nodes host=%s database=%s measurement_id=%s path=%s",
+        "export_nodes host=%s database=%s destination=%s measurement_id=%s",
         host,
         database,
+        destination,
         measurement_id,
-        path,
     )
     query = f"""
     {GetNodes().statement(measurement_id)}
-    INTO OUTFILE '{path}'
+    INTO OUTFILE '{destination}/{measurement_id}.nodes'
     FORMAT CSV
     """
     await execute(host, database, query)
 
 
 async def do_export_table(
-    host: str, database: str, measurement_id: str, path: str
+    host: str, database: str, destination: str, measurement_id: str
 ) -> None:
     logging.info(
-        "export_table host=%s database=%s measurement_id=%s path=%s",
+        "export_table host=%s database=%s destination=%s measurement_id=%s",
         host,
         database,
+        destination,
         measurement_id,
-        path,
     )
     query = f"""
     SELECT * FROM {results_table(measurement_id)}
-    INTO OUTFILE '{path}'
+    INTO OUTFILE '{destination}/{measurement_id}.clickhouse'
     FORMAT Native
     """
     await execute(host, database, query)
@@ -111,9 +112,9 @@ def main(
     export_links: bool = typer.Option(True, is_flag=True),
     export_nodes: bool = typer.Option(True, is_flag=True),
     export_tables: bool = typer.Option(True, is_flag=True),
-    destination: Optional[Path] = typer.Option("exports", metavar="DESTINATION"),
-    database: Optional[str] = typer.Option("iris", metavar="DATABASE"),
     host: Optional[str] = typer.Option("127.0.0.1", metavar="HOST"),
+    database: Optional[str] = typer.Option("iris", metavar="DATABASE"),
+    destination: Optional[str] = typer.Option("exports", metavar="DESTINATION"),
 ):
     assert tag or uuid, "One of --tag or --uuid must be specified."
     logging.basicConfig(level=logging.INFO)
@@ -131,25 +132,22 @@ def main(
 
     logging.info("Getting measurement information...")
     info = request("GET", f"/measurements/{uuid}", headers=headers)
-    (destination / f"{uuid}.json").write_text(json.dumps(info, indent=4))
+    Path(f"{destination}/{uuid}.json").write_text(json.dumps(info, indent=4))
 
     measurement_ids = [f"{uuid}__{agent['uuid']}" for agent in info["agents"]]
     futures = []
 
     if export_links:
         for measurement_id in measurement_ids:
-            path = (destination / measurement_id).with_suffix(".links")
-            futures.append(do_export_links(host, database, measurement_id, str(path)))
+            futures.append(do_export_links(host, database, destination, measurement_id))
 
     if export_nodes:
         for measurement_id in measurement_ids:
-            path = (destination / measurement_id).with_suffix(".nodes")
-            futures.append(do_export_nodes(host, database, measurement_id, str(path)))
+            futures.append(do_export_nodes(host, database, destination, measurement_id))
 
     if export_tables:
         for measurement_id in measurement_ids:
-            path = (destination / measurement_id).with_suffix(".clickhouse")
-            futures.append(do_export_table(host, database, measurement_id, str(path)))
+            futures.append(do_export_table(host, database, destination, measurement_id))
 
     async def _do():
         await asyncio.gather(*futures)

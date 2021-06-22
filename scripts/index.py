@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
 import json
 from datetime import datetime
 from pathlib import Path
 from subprocess import run
+from typing import Optional
+
+import typer
 
 
 def start_time(measurement):
@@ -13,12 +17,12 @@ def end_time(measurement):
 
 
 def wc(file):
-    res = run(["wc", "-l", file], capture_output=True)
+    res = run(["wc", "-l", str(file)], capture_output=True, check=True)
     return int(res.stdout.split()[0])
 
 
-def main():
-    files = Path("exports/").glob("*.json")
+def main(destination: Optional[Path] = typer.Option("exports", metavar="DESTINATION")):
+    files = destination.glob("*.json")
     metas = []
     for file in files:
         meta = json.loads(file.read_text())
@@ -42,9 +46,9 @@ def main():
         )
         md += "\n"
 
-    Path("exports/INDEX.md").write_text(md)
+    (destination / "INDEX.md").write_text(md)
     print(md)
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

@@ -1,0 +1,6 @@
+*
+!diamond-miner/
+!exports/README.md
+!scripts/
+!poetry.lock
+!pyproject.toml
