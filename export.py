@@ -1,20 +1,88 @@
+import asyncio
 import json
 import logging
 import os
-import subprocess
 from datetime import datetime
-from ipaddress import ip_network
 from pathlib import Path
 from typing import Optional
 
 import requests
 import typer
-from clickhouse_driver import Client
-from diamond_miner.queries.get_links import GetLinks
-from diamond_miner.queries.get_nodes import GetNodes
-from tqdm import tqdm
+from diamond_miner.queries import GetLinks, GetNodes, results_table
 
 IRIS_URL = "https://iris.dioptra.io/api"
+
+
+async def execute(host: str, database: str, statement: str) -> None:
+    cmd = f'clickhouse-client --host={host} --database={database} --query="{statement}"'
+    proc = await asyncio.create_subprocess_shell(cmd)
+    await proc.communicate()
+
+
+async def do_export_links(
+    host: str, database: str, measurement_id: str, path: str
+) -> None:
+    logging.info(
+        "export_links host=%s database=%s measurement_id=%s path=%s",
+        host,
+        database,
+        measurement_id,
+        path,
+    )
+    query = f"""
+    {GetLinks().statement(measurement_id)}
+    INTO OUTFILE '{path}'
+    FORMAT CSV
+    """
+    await execute(host, database, query)
+
+
+async def do_export_nodes(
+    host: str, database: str, measurement_id: str, path: str
+) -> None:
+    logging.info(
+        "export_nodes host=%s database=%s measurement_id=%s path=%s",
+        host,
+        database,
+        measurement_id,
+        path,
+    )
+    query = f"""
+    {GetNodes().statement(measurement_id)}
+    INTO OUTFILE '{path}'
+    FORMAT CSV
+    """
+    await execute(host, database, query)
+
+
+async def do_export_table(
+    host: str, database: str, measurement_id: str, path: str
+) -> None:
+    logging.info(
+        "export_table host=%s database=%s measurement_id=%s path=%s",
+        host,
+        database,
+        measurement_id,
+        path,
+    )
+    query = f"""
+    SELECT * FROM {results_table(measurement_id)}
+    INTO OUTFILE '{path}'
+    FORMAT Native
+    """
+    await execute(host, database, query)
+
+
+def find_uuid(headers: dict, tag: str) -> str:
+    logging.info(f"Listing measurements with tag {tag}...")
+    res = request(
+        "GET",
+        "/measurements/",
+        params={"limit": 200, "tag": tag},
+        headers=headers,
+    )
+    res = [x for x in res["results"] if x.get("end_time")]
+    return sorted(res, key=end_time)[-1]["uuid"]
 
 
 def request(method, path, **kwargs):
@@ -31,61 +99,6 @@ def end_time(measurement):
     return datetime.fromisoformat(measurement["end_time"])
 
 
-def clickhouse_uuid(uuid):
-    return uuid.replace("-", "_")
-
-
-def iris_uuid(uuid):
-    return uuid.replace("_", "-")
-
-
-def find_tables(client, uuid):
-    res = client.execute(
-        f"""
-    SELECT name
-    FROM system.tables
-    WHERE name LIKE 'results__%{clickhouse_uuid(uuid)}%'
-    """
-    )
-    return [x[0] for x in res]
-
-
-def do_export_tables(database, host, tables):
-    for table in tables:
-        logging.info(f"Exporting {table}...")
-        cmd = "clickhouse-client"
-        cmd += f" --host={host}"
-        cmd += f" --database={database}"
-        cmd += f" --query=\"SELECT * FROM {table} INTO OUTFILE 'exports/{table}.clickhouse' FORMAT Native\""  # noqa
-        logging.info(cmd)
-        subprocess.run(cmd, check=True, shell=True)
-
-
-def do_export_nodes(client, tables, subsets, uuid):
-    q = GetNodes(filter_destination=True, filter_private=True, time_exceeded_only=True)
-    nodes = set()
-    for table in tables:
-        it = q.execute_iter(client, table, subsets)
-        for row in tqdm(it, desc="Query"):
-            nodes.add(row[0].ipv4_mapped or row[0])
-    with Path(f"exports/{clickhouse_uuid(uuid)}.nodes").open("w") as f:
-        f.writelines(str(x) + "\n" for x in tqdm(nodes, desc="Write"))
-
-
-def do_export_links(client, tables, subsets, uuid):
-    q = GetLinks(filter_destination=True, filter_private=True, time_exceeded_only=True)
-    links = set()
-    for table in tables:
-        it = q.execute_iter(client, table, subsets)
-        for _, _, links_ in tqdm(it, desc="Query"):
-            for a, b in links_:
-                a = a.ipv4_mapped or a
-                b = b.ipv4_mapped or b
-                links.add((a, b))
-    with Path(f"exports/{clickhouse_uuid(uuid)}.links").open("w") as f:
-        f.writelines(f"{str(a)},{str(b)}\n" for a, b in tqdm(links, desc="Write"))
-
-
 def main(
     tag: Optional[str] = typer.Option(
         None,
@@ -95,22 +108,14 @@ def main(
     uuid: Optional[str] = typer.Option(
         None, metavar="UUID", help="Export the measurement with the specified UUID."
     ),
-    export_nodes: bool = typer.Option(True, is_flag=True),
     export_links: bool = typer.Option(True, is_flag=True),
-    export_tables: bool = typer.Option(
-        True,
-        is_flag=True,
-        help="Dump the tables in native format (requires clickhouse-client).",
-    ),
+    export_nodes: bool = typer.Option(True, is_flag=True),
+    export_tables: bool = typer.Option(True, is_flag=True),
+    destination: Optional[Path] = typer.Option("exports", metavar="DESTINATION"),
     database: Optional[str] = typer.Option("iris", metavar="DATABASE"),
-    host: Optional[str] = typer.Option(
-        "127.0.0.1", metavar="HOST", help="ClickHouse host"
-    ),
+    host: Optional[str] = typer.Option("127.0.0.1", metavar="HOST"),
 ):
-    if tag == uuid:
-        print("One of --tag or --uuid must be specified.")
-        return
-
+    assert tag or uuid, "One of --tag or --uuid must be specified."
     logging.basicConfig(level=logging.INFO)
 
     logging.info("Authenticating...")
@@ -122,40 +127,34 @@ def main(
     headers = {"Authorization": f"Bearer {res['access_token']}"}
 
     if tag:
-        logging.info(f"Listing measurements with tag {tag}...")
-        res = request(
-            "GET",
-            "/measurements/",
-            params={"limit": 200, "tag": tag},
-            headers=headers,
-        )
-        res = [x for x in res["results"] if x.get("end_time")]
-        if not res:
-            logging.error("Measurement not found")
-            return
-        last = sorted(res, key=end_time)[-1]
-        uuid = last["uuid"]
+        uuid = find_uuid(headers, tag)
 
     logging.info("Getting measurement information...")
-    res = request("GET", f"/measurements/{iris_uuid(uuid)}", headers=headers)
-    Path(f"exports/{clickhouse_uuid(uuid)}.json").write_text(json.dumps(res, indent=4))
+    info = request("GET", f"/measurements/{uuid}", headers=headers)
+    (destination / f"{uuid}.json").write_text(json.dumps(info, indent=4))
 
-    logging.info(f"Listing tables with uuid {uuid}...")
-    client = Client(host, database=database)
-    tables = find_tables(client, uuid)
-    for table in tables:
-        logging.info(table)
-
-    subsets = list(ip_network("0.0.0.0/0").subnets(new_prefix=4))
-
-    if export_tables:
-        do_export_tables(database, host, tables)
-
-    if export_nodes:
-        do_export_nodes(client, tables, subsets, uuid)
+    measurement_ids = [f"{uuid}__{agent['uuid']}" for agent in info["agents"]]
+    futures = []
 
     if export_links:
-        do_export_links(client, tables, subsets, uuid)
+        for measurement_id in measurement_ids:
+            path = (destination / measurement_id).with_suffix(".links")
+            futures.append(do_export_links(host, database, measurement_id, str(path)))
+
+    if export_nodes:
+        for measurement_id in measurement_ids:
+            path = (destination / measurement_id).with_suffix(".nodes")
+            futures.append(do_export_nodes(host, database, measurement_id, str(path)))
+
+    if export_tables:
+        for measurement_id in measurement_ids:
+            path = (destination / measurement_id).with_suffix(".clickhouse")
+            futures.append(do_export_table(host, database, measurement_id, str(path)))
+
+    async def _do():
+        await asyncio.gather(*futures)
+
+    asyncio.run(_do())
 
 
 if __name__ == "__main__":
