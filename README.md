@@ -35,24 +35,4 @@ sudo crontab -e
 
 ### Manual
 
-```bash
-docker run \
-  --env IRIS_USERNAME=... \
-  --env IRIS_PASSWORD=... \
-  --network iris_default \
-  --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter export --host clickhouse --database iris --destination /exports --tag mindef.saturday.json
-```
-
-```bash
-docker run \
-  --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter index --destination /exports
-```
-
-```bash
-docker run \
-  --volume /home/dioptra-bot/.ssh:/root/.ssh \
-  --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter sync --source /exports --destination dioptra-bot@venus.planet-lab.eu:/srv/icg-ftp/snapshots_2021
-```
+See [iris-cron.sh](/iris-cron.sh)
