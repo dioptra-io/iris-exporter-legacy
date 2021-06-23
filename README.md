@@ -21,6 +21,12 @@ poetry run iris-exporter --help
 ## Usage
 
 ```bash
+cd /src/clones/iris-exporter
+dioptra git pull
+docker build -t iris-exporter .
+```
+
+```bash
 docker run \
   --env IRIS_USERNAME=... \
   --env IRIS_PASSWORD=... \
