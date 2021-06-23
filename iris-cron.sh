@@ -6,7 +6,7 @@ docker run \
   --env IRIS_PASSWORD=randompassword \
   --network iris_default \
   --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter export --destination /exports --host clickhouse --tag mindef.saturday.json
+  iris-exporter export --host clickhouse --database iris --destination /exports --tag mindef.saturday.json
 
 docker run \
   --volume /srv/clones/iris-exporter/exports:/exports \
