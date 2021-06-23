@@ -26,6 +26,15 @@ dioptra git pull
 docker build -t iris-exporter .
 ```
 
+### Automatic
+
+```bash
+sudo crontab -e
+# 0 2 * * * /srv/clones/iris-exporter/cron.sh
+```
+
+### Manual
+
 ```bash
 docker run \
   --env IRIS_USERNAME=... \
