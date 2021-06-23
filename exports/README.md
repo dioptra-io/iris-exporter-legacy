@@ -2,7 +2,7 @@
 
 File                                               | Description
 -------------------------------------------------- |------------
-`measurement-uuid__agent-uuid.json`                | Measurement information (`GET /measurements/{measurement-uuid}`)
+`measurement-uuid.json`                            | Measurement information (`GET /measurements/{measurement-uuid}`)
 `measurement-uuid__agent-uuid.nodes`               | Nodes (one per line)
 `measurement-uuid__agent-uuid.links`               | Links (one per line)
 `results__measurement-uuid__agent-uuid.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
