@@ -1,11 +1,10 @@
 # iris-exporter
-Scripts for exporting data from Iris.
+
+Export Iris data.
 
 ## Installation
 
 ### Docker 🐳
-
-To get a shell in the current directory with all the tools installed:
 
 ```bash
 docker build -t iris-exporter .
