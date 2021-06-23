@@ -37,7 +37,7 @@ async def clickhouse(host: str, database: str, statement: str) -> None:
 async def rsync(source: Path, destination: Path) -> None:
     logging.info("rsync source=%s destination=%s", source, destination)
     proc = await asyncio.create_subprocess_shell(
-        f"rsync --archive --delete --progress '{source}' '{destination}'"
+        f"rsync --archive --delete --progress '{source}/' '{destination}/'"
     )
     await proc.communicate()
 

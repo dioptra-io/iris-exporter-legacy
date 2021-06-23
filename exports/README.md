@@ -1,11 +1,11 @@
 # Iris data dumps
 
-File                              | Description
-----------------------------------|------------
-`uuid.json`                       | Measurement information (`GET /measurements/{uuid}`)
-`uuid.nodes`                      | Nodes (one per line)
-`uuid.links`                      | Links (one per line)
-`results__uuid__agent.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
+File                                               | Description
+-------------------------------------------------- |------------
+`measurement-uuid__agent-uuid.json`                | Measurement information (`GET /measurements/{uuid}`)
+`measurement-uuid__agent-uuid.nodes`               | Nodes (one per line)
+`measurement-uuid__agent-uuid.links`               | Links (one per line)
+`results__measurement-uuid__agent-uuid.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
 
 The ClickHouse dumps are compressed with Zstandard (https://facebook.github.io/zstd/) which is
 much faster than bzip2 and gzip while achieving similar compression ratios.
