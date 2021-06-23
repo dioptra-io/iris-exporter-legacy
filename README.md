@@ -21,7 +21,7 @@ poetry run iris-exporter --help
 ## Usage
 
 ```bash
-cd /src/clones/iris-exporter
+cd /srv/clones/iris-exporter
 dioptra git pull
 docker build -t iris-exporter .
 ```
