@@ -26,13 +26,22 @@ dioptra git pull
 docker build -t iris-exporter .
 ```
 
+### Automatic
+
+```bash
+sudo crontab -e
+# 0 2 * * 1 /srv/clones/iris-exporter/iris-cron.sh
+```
+
+### Manual
+
 ```bash
 docker run \
   --env IRIS_USERNAME=... \
   --env IRIS_PASSWORD=... \
   --network iris_default \
   --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter export --destination /exports --host clickhouse --tag mindef.saturday.json
+  iris-exporter export --host clickhouse --database iris --destination /exports --tag mindef.saturday.json
 ```
 
 ```bash
