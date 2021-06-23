@@ -31,14 +31,12 @@ docker run \
 
 ```bash
 docker run \
-  --network iris_default \
   --volume /srv/clones/iris-exporter/exports:/exports \
   iris-exporter index --destination /exports
 ```
 
 ```bash
 docker run \
-  --network iris_default \
   --volume /home/dioptra-bot/.ssh:/root/.ssh \
   --volume /srv/clones/iris-exporter/exports:/exports \
   iris-exporter sync --source /exports --destination dioptra-bot@venus.planet-lab.eu:/srv/icg-ftp/snapshots_2021
