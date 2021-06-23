@@ -35,4 +35,4 @@ sudo crontab -e
 
 ### Manual
 
-See [iris-cron.sh](/iris-cron.sh)
+See [`iris-cron.sh`](/iris-cron.sh)
