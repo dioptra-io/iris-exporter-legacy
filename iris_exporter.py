@@ -26,9 +26,6 @@ def run_in_loop(f):
 
 
 async def clickhouse(host: str, database: str, statement: str) -> None:
-    logging.info(
-        "clickhouse host=%s database=%s statement=%s", host, database, statement
-    )
     cmd = f'clickhouse-client --host={host} --database={database} --query="{statement}"'
     proc = await asyncio.create_subprocess_shell(cmd)
     await proc.communicate()
@@ -67,12 +64,14 @@ async def do_export_links(
         destination,
         measurement_id,
     )
+    file = f"{destination}/{measurement_id}.links"
     query = f"""
     {GetLinks().statement(measurement_id)}
-    INTO OUTFILE '{destination}/{measurement_id}.links'
+    INTO OUTFILE '{file}'
     FORMAT CSV
     """
-    await clickhouse(host, database, query)
+    if not Path(file).exists():
+        await clickhouse(host, database, query)
 
 
 async def do_export_nodes(
@@ -85,12 +84,14 @@ async def do_export_nodes(
         destination,
         measurement_id,
     )
+    file = f"{destination}/{measurement_id}.nodes"
     query = f"""
     {GetNodes().statement(measurement_id)}
-    INTO OUTFILE '{destination}/{measurement_id}.nodes'
+    INTO OUTFILE '{file}'
     FORMAT CSV
     """
-    await clickhouse(host, database, query)
+    if not Path(file).exists():
+        await clickhouse(host, database, query)
 
 
 async def do_export_table(
@@ -103,12 +104,14 @@ async def do_export_table(
         destination,
         measurement_id,
     )
+    file = f"{destination}/{results_table(measurement_id)}.clickhouse"
     query = f"""
     SELECT * FROM {results_table(measurement_id)}
-    INTO OUTFILE '{destination}/{results_table(measurement_id)}.clickhouse'
+    INTO OUTFILE '{file}'
     FORMAT Native
     """
-    await clickhouse(host, database, query)
+    if not Path(file).exists() and not Path(file + ".zst").exists():
+        await clickhouse(host, database, query)
 
 
 async def request(method, path, **kwargs):
