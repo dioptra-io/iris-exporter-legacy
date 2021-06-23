@@ -30,7 +30,7 @@ docker build -t iris-exporter .
 
 ```bash
 sudo crontab -e
-# 0 2 * * * /srv/clones/iris-exporter/cron.sh
+# 0 2 * * 1 /srv/clones/iris-exporter/iris-cron.sh
 ```
 
 ### Manual
@@ -41,7 +41,7 @@ docker run \
   --env IRIS_PASSWORD=... \
   --network iris_default \
   --volume /srv/clones/iris-exporter/exports:/exports \
-  iris-exporter export --destination /exports --host clickhouse --tag mindef.saturday.json
+  iris-exporter export --host clickhouse --database iris --destination /exports --tag mindef.saturday.json
 ```
 
 ```bash
