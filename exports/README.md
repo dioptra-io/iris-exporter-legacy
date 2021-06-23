@@ -2,7 +2,7 @@
 
 File                                               | Description
 -------------------------------------------------- |------------
-`measurement-uuid__agent-uuid.json`                | Measurement information (`GET /measurements/{uuid}`)
+`measurement-uuid__agent-uuid.json`                | Measurement information (`GET /measurements/{measurement-uuid}`)
 `measurement-uuid__agent-uuid.nodes`               | Nodes (one per line)
 `measurement-uuid__agent-uuid.links`               | Links (one per line)
 `results__measurement-uuid__agent-uuid.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
@@ -35,20 +35,20 @@ Column              | Type          | Comments
 
 ## Changelog
 
-### 30/04/2021
+### 04/06/2021
 
-The `probe_protocol` column is added, to allow for multi-protocol measurements.
+The `probe_ttl_l4` column has been renamed to `probe_ttl` and the `probe_ttl_l3` column has been removed.
+We now store `quoted_ttl`, the TTL of the probe packet as seen by the host who generated the ICMP reply.
+
+### 16/05/2021
+
+The RTT column precision is reduced to 32 bits as its maximum value is 6553.5 ms.
 
 ### 08/05/2021
 
 We now encode `checkum(caracal_id, probe_dst_addr, probe_src_port, probe_ttl_l4)` in the IP header ID field, instead of the probe TTL (previously, `probe_ttl_l3`).
 This allows us to drop invalid replies. As such the number of anomalous values in the database should be greatly reduced (TTLs > 32, probe_src_port < 24000, private probe_dst_addr, etc.).
 
-### 16/05/2021
+### 30/04/2021
 
-The RTT column precision is reduced to 32 bits as its maximum value is 6553.5 ms.
-
-### 04/06/2021
-
-The `probe_ttl_l4` column has been renamed to `probe_ttl` and the `probe_ttl_l3` column has been removed.
-We now store `quoted_ttl`, the TTL of the probe packet as seen by the host who generated the ICMP reply.
+The `probe_protocol` column is added, to allow for multi-protocol measurements.
