@@ -189,10 +189,7 @@ async def export(
         for measurement_id in measurement_ids:
             futures.append(do_export_table(host, database, destination, measurement_id))
 
-    async def _do():
-        await asyncio.gather(*futures)
-
-    asyncio.run(_do())
+    await asyncio.gather(*futures)
 
 
 @app.command()
