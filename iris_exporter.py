@@ -31,14 +31,6 @@ async def clickhouse(host: str, database: str, statement: str) -> None:
     await proc.communicate()
 
 
-async def rsync(source: Path, destination: Path) -> None:
-    logging.info("rsync source=%s destination=%s", source, destination)
-    proc = await asyncio.create_subprocess_shell(
-        f"rsync --archive --delete --progress '{source}/' '{destination}/'"
-    )
-    await proc.communicate()
-
-
 async def wc(file: Path) -> int:
     logging.info("wc file=%s", file)
     proc = await asyncio.create_subprocess_shell(
@@ -55,7 +47,7 @@ async def zstd(file: Path) -> None:
 
 
 async def do_export_links(
-    host: str, database: str, destination: str, measurement_id: str
+    host: str, database: str, destination: Path, measurement_id: str
 ) -> None:
     logging.info(
         "export_links host=%s database=%s destination=%s measurement_id=%s",
@@ -64,18 +56,18 @@ async def do_export_links(
         destination,
         measurement_id,
     )
-    file = f"{destination}/{measurement_id}.links"
+    file = (destination / measurement_id).with_suffix(".links")
     query = f"""
     {GetLinks().statement(measurement_id)}
     INTO OUTFILE '{file}'
     FORMAT CSV
     """
-    if not Path(file).exists():
+    if not file.exists():
         await clickhouse(host, database, query)
 
 
 async def do_export_nodes(
-    host: str, database: str, destination: str, measurement_id: str
+    host: str, database: str, destination: Path, measurement_id: str
 ) -> None:
     logging.info(
         "export_nodes host=%s database=%s destination=%s measurement_id=%s",
@@ -84,18 +76,18 @@ async def do_export_nodes(
         destination,
         measurement_id,
     )
-    file = f"{destination}/{measurement_id}.nodes"
+    file = (destination / measurement_id).with_suffix(".nodes")
     query = f"""
     {GetNodes().statement(measurement_id)}
     INTO OUTFILE '{file}'
     FORMAT CSV
     """
-    if not Path(file).exists():
+    if not file.exists():
         await clickhouse(host, database, query)
 
 
 async def do_export_table(
-    host: str, database: str, destination: str, measurement_id: str
+    host: str, database: str, destination: Path, measurement_id: str
 ) -> None:
     logging.info(
         "export_table host=%s database=%s destination=%s measurement_id=%s",
@@ -104,14 +96,15 @@ async def do_export_table(
         destination,
         measurement_id,
     )
-    file = f"{destination}/{results_table(measurement_id)}.clickhouse"
+    file = (destination / results_table(measurement_id)).with_suffix(".clickhouse")
     query = f"""
     SELECT * FROM {results_table(measurement_id)}
     INTO OUTFILE '{file}'
     FORMAT Native
     """
-    if not Path(file).exists() and not Path(file + ".zst").exists():
+    if not file.with_suffix(".clickhouse.zst").exists():
         await clickhouse(host, database, query)
+        await zstd(file)
 
 
 async def request(method, path, **kwargs):
@@ -157,7 +150,7 @@ async def export(
     export_tables: bool = typer.Option(True, is_flag=True),
     host: str = typer.Option("localhost", metavar="HOST"),
     database: str = typer.Option("default", metavar="DATABASE"),
-    destination: str = typer.Option("exports", metavar="DESTINATION"),
+    destination: Path = typer.Option("exports", metavar="DESTINATION"),
 ):
     assert tag or uuid, "One of --tag or --uuid must be specified."
     logging.basicConfig(level=logging.INFO)
@@ -241,19 +234,6 @@ async def index(destination: Path = typer.Option("exports", metavar="DESTINATION
 
     (destination / "INDEX.md").write_text(md)
     print(md)
-
-
-@app.command()
-@run_in_loop
-async def sync(
-    source: Path = typer.Option("exports", metavar="SOURCE"),
-    destination: Path = typer.Option(..., metavar="DESTINATION"),
-):
-    futures = []
-    for file in source.glob("*.clickhouse"):
-        futures.append(zstd(file))
-    await asyncio.gather(*futures)
-    await rsync(source, destination)
 
 
 if __name__ == "__main__":
