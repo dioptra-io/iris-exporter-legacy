@@ -20,4 +20,6 @@ COPY pyproject.toml pyproject.toml
 RUN poetry install --no-dev --no-root \
     && rm -rf /root/.cache/*
 
-COPY scripts/ scripts/
+COPY iris_exporter.py iris_exporter.py
+
+ENTRYPOINT ["./iris_exporter.py"]

@@ -1,6 +1,6 @@
 *
 !diamond-miner/
 !exports/README.md
-!scripts/
+!iris_exporter.py
 !poetry.lock
 !pyproject.toml
