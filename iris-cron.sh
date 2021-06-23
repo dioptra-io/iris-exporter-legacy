@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LOCAL=/srv/clones/iris-exporter/exports
-REMOTE=dioptra-bot@venus.planet-lab.eu:/src/icg-ftp/snapshots_2021
+REMOTE=dioptra-bot@venus.planet-lab.eu:/srv/icg-ftp/snapshots_2021
 
 docker run \
   --rm \
