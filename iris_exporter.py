@@ -4,32 +4,57 @@ import json
 import logging
 import os
 from datetime import datetime
+from functools import wraps
 from pathlib import Path
 from typing import Optional
 
-import requests
+import httpx
 import typer
 from diamond_miner.queries import GetLinks, GetNodes, results_table
-
-# TODO: Proper asyncio loop (instead of asyncio.run for every call).
 
 IRIS_URL = "https://iris.dioptra.io/api"
 
 app = typer.Typer()
 
 
+def run_in_loop(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
+
+
 async def clickhouse(host: str, database: str, statement: str) -> None:
+    logging.info(
+        "clickhouse host=%s database=%s statement=%s", host, database, statement
+    )
     cmd = f'clickhouse-client --host={host} --database={database} --query="{statement}"'
     proc = await asyncio.create_subprocess_shell(cmd)
     await proc.communicate()
 
 
+async def rsync(source: Path, destination: Path) -> None:
+    logging.info("rsync source=%s destination=%s", source, destination)
+    proc = await asyncio.create_subprocess_shell(
+        f"rsync --archive --delete --progress '{source}' '{destination}'"
+    )
+    await proc.communicate()
+
+
 async def wc(file: Path) -> int:
+    logging.info("wc file=%s", file)
     proc = await asyncio.create_subprocess_shell(
         f"wc -l {file}", stdout=asyncio.subprocess.PIPE
     )
     stdout, _ = await proc.communicate()
     return int(stdout.split()[0])
+
+
+async def zstd(file: Path) -> None:
+    logging.info("zstd file=%s", file)
+    proc = await asyncio.create_subprocess_shell(f"zstd -T0 --fast=1 -f --rm {file}")
+    await proc.communicate()
 
 
 async def do_export_links(
@@ -86,9 +111,16 @@ async def do_export_table(
     await clickhouse(host, database, query)
 
 
-def find_uuid(headers: dict, tag: str) -> str:
+async def request(method, path, **kwargs):
+    async with httpx.AsyncClient() as client:
+        req = await client.request(method, IRIS_URL + path, **kwargs)
+        req.raise_for_status()
+        return req.json()
+
+
+async def find_uuid(headers: dict, tag: str) -> str:
     logging.info(f"Listing measurements with tag {tag}...")
-    res = request(
+    res = await request(
         "GET",
         "/measurements/",
         params={"limit": 200, "tag": tag},
@@ -96,12 +128,6 @@ def find_uuid(headers: dict, tag: str) -> str:
     )
     res = [x for x in res["results"] if x.get("end_time")]
     return sorted(res, key=end_time)[-1]["uuid"]
-
-
-def request(method, path, **kwargs):
-    req = requests.request(method, IRIS_URL + path, **kwargs)
-    req.raise_for_status()
-    return req.json()
 
 
 def start_time(measurement: dict) -> datetime:
@@ -113,7 +139,8 @@ def end_time(measurement: dict) -> datetime:
 
 
 @app.command()
-def export(
+@run_in_loop
+async def export(
     tag: Optional[str] = typer.Option(
         None,
         metavar="TAG",
@@ -125,9 +152,9 @@ def export(
     export_links: bool = typer.Option(True, is_flag=True),
     export_nodes: bool = typer.Option(True, is_flag=True),
     export_tables: bool = typer.Option(True, is_flag=True),
-    host: Optional[str] = typer.Option("127.0.0.1", metavar="HOST"),
-    database: Optional[str] = typer.Option("iris", metavar="DATABASE"),
-    destination: Optional[str] = typer.Option("exports", metavar="DESTINATION"),
+    host: str = typer.Option("localhost", metavar="HOST"),
+    database: str = typer.Option("default", metavar="DATABASE"),
+    destination: str = typer.Option("exports", metavar="DESTINATION"),
 ):
     assert tag or uuid, "One of --tag or --uuid must be specified."
     logging.basicConfig(level=logging.INFO)
@@ -137,14 +164,14 @@ def export(
         "username": os.environ["IRIS_USERNAME"],
         "password": os.environ["IRIS_PASSWORD"],
     }
-    res = request("POST", "/profile/token", data=data)
+    res = await request("POST", "/profile/token", data=data)
     headers = {"Authorization": f"Bearer {res['access_token']}"}
 
     if tag:
-        uuid = find_uuid(headers, tag)
+        uuid = await find_uuid(headers, tag)
 
     logging.info("Getting measurement information...")
-    info = request("GET", f"/measurements/{uuid}", headers=headers)
+    info = await request("GET", f"/measurements/{uuid}", headers=headers)
     Path(f"{destination}/{uuid}.json").write_text(json.dumps(info, indent=4))
 
     measurement_ids = [f"{uuid}__{agent['uuid']}" for agent in info["agents"]]
@@ -169,7 +196,8 @@ def export(
 
 
 @app.command()
-def index(destination: Optional[Path] = typer.Option("exports", metavar="DESTINATION")):
+@run_in_loop
+async def index(destination: Path = typer.Option("exports", metavar="DESTINATION")):
     measurements = []
 
     for file in destination.glob("*.json"):
@@ -179,11 +207,11 @@ def index(destination: Optional[Path] = typer.Option("exports", metavar="DESTINA
 
         for file_ in destination.glob(f"{measurement_uuid}*.nodes"):
             agent_uuid = file_.stem.split("__")[1]
-            agents.setdefault(agent_uuid, {})["nodes"] = asyncio.run(wc(file_))
+            agents.setdefault(agent_uuid, {})["nodes"] = await wc(file_)
 
         for file_ in destination.glob(f"{measurement_uuid}*.links"):
             agent_uuid = file_.stem.split("__")[1]
-            agents.setdefault(agent_uuid, {})["links"] = asyncio.run(wc(file_))
+            agents.setdefault(agent_uuid, {})["links"] = await wc(file_)
 
         measurements.append({"meta": meta, "agents": agents})
 
@@ -216,8 +244,16 @@ def index(destination: Optional[Path] = typer.Option("exports", metavar="DESTINA
 
 
 @app.command()
-def sync():
-    pass
+@run_in_loop
+async def sync(
+    source: Path = typer.Option("exports", metavar="SOURCE"),
+    destination: Path = typer.Option(..., metavar="DESTINATION"),
+):
+    futures = []
+    for file in source.glob("*.clickhouse"):
+        futures.append(zstd(file))
+    await asyncio.gather(*futures)
+    await rsync(source, destination)
 
 
 if __name__ == "__main__":
