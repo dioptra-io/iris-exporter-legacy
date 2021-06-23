@@ -68,7 +68,7 @@ async def do_export_table(
     )
     query = f"""
     SELECT * FROM {results_table(measurement_id)}
-    INTO OUTFILE '{destination}/{measurement_id}.clickhouse'
+    INTO OUTFILE '{destination}/{results_table(measurement_id)}.clickhouse'
     FORMAT Native
     """
     await execute(host, database, query)
