@@ -13,7 +13,6 @@ RUN poetry config virtualenvs.create false
 
 WORKDIR /app
 
-COPY vendors/ vendors/
 COPY poetry.lock poetry.lock
 COPY pyproject.toml pyproject.toml
 

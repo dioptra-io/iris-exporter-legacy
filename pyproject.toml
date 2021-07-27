@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-diamond-miner = { path = 'vendors/diamond-miner', develop = true }
+diamond-miner = "^0.1.0"
 httpx = "^0.18.2"
 tqdm = "^4.60.0"
 typer = "^0.3.2"
