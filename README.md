@@ -26,13 +26,24 @@ dioptra git pull
 docker build -t iris-exporter .
 ```
 
-### Automatic
-
-```bash
-sudo crontab -e
-# 0 2 * * 1 /srv/clones/iris-exporter/iris-cron.sh
-```
-
 ### Manual
 
-See [`iris-cron.sh`](/iris-cron.sh).
+```bash
+LOCAL=/srv/clones/iris-exporter/exports
+REMOTE=dioptra-bot@venus.planet-lab.eu:/srv/icg-ftp/snapshots_2021
+
+docker run \
+  --rm \
+  --env IRIS_USERNAME=admin \
+  --env IRIS_PASSWORD=randompassword \
+  --network iris-production_default \
+  --volume "${LOCAL}":/exports \
+  iris-exporter export --host clickhouse --database iris --destination /exports --tag exhaustive.saturday.json
+
+docker run \
+  --rm \
+  --volume "${LOCAL}":/exports \
+  iris-exporter index --destination /exports
+
+rsync --rsh='ssh -i /home/dioptra-bot/.ssh/id_rsa' --archive --delete --progress "${LOCAL}/" "${REMOTE}/"
+```

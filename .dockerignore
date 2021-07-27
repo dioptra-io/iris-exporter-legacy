@@ -1,5 +1,5 @@
 *
-!diamond-miner/
+!vendors/
 !iris_exporter.py
 !poetry.lock
 !pyproject.toml

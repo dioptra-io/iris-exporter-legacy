@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-          token: ${{ secrets.PAT_ACCESS }}
+          ssh-key: ${{ secrets.DIOPTRA_BOT_SSH_KEY }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -44,6 +44,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
+          context: .
           platforms: linux/amd64
           # platforms: linux/amd64,linux/arm64
           push: true
