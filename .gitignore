@@ -132,4 +132,3 @@ dmypy.json
 poetry.toml
 
 exports/*
-!exports/README.md
