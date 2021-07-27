@@ -8,7 +8,7 @@ docker run \
   --rm \
   --env IRIS_USERNAME=admin \
   --env IRIS_PASSWORD=randompassword \
-  --network iris_default \
+  --network iris-production_default \
   --volume "${LOCAL}":/exports \
   iris-exporter export --host clickhouse --database iris --destination /exports --tag exhaustive.saturday.json
 
