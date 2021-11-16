@@ -97,12 +97,6 @@ async def wc(file: Path) -> int:
     return int(stdout.split()[0])
 
 
-async def zstd(file: Path) -> None:
-    logging.info("zstd file=%s", file)
-    proc = await asyncio.create_subprocess_shell(f"zstd -T0 --fast=1 -f --rm {file}")
-    await proc.communicate()
-
-
 async def do_export_links(
     host: str, database: str, destination: Path, measurement_id: str
 ) -> None:
@@ -153,15 +147,14 @@ async def do_export_table(
         destination,
         measurement_id,
     )
-    file = (destination / results_table(measurement_id)).with_suffix(".clickhouse")
+    file = (destination / results_table(measurement_id)).with_suffix(".clickhouse.zst")
     query = f"""
     SELECT * FROM {results_table(measurement_id)}
     INTO OUTFILE '{file}'
     FORMAT Native
     """
-    if not file.with_suffix(".clickhouse.zst").exists():
+    if not file.exists():
         await clickhouse(host, database, query)
-        await zstd(file)
 
 
 async def request(method, path, **kwargs):
