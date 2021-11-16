@@ -46,6 +46,17 @@ python-versions = "*"
 pycparser = "*"
 
 [[package]]
+name = "charset-normalizer"
+version = "2.0.4"
+description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
+category = "main"
+optional = false
+python-versions = ">=3.5.0"
+
+[package.extras]
+unicode_backport = ["unicodedata2"]
+
+[[package]]
 name = "click"
 version = "7.1.2"
 description = "Composable command line interface toolkit"
@@ -80,7 +91,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "diamond-miner"
-version = "0.1.0"
+version = "0.1.16"
 description = "High-speed, Internet-scale, load-balanced paths discovery."
 category = "main"
 optional = false
@@ -89,6 +100,7 @@ python-versions = ">=3.8,<4.0"
 [package.dependencies]
 aioch = ">=0.0.2,<0.0.3"
 clickhouse-driver = ">=0.2.0,<0.3.0"
+httpx = ">=0.20.0,<0.21.0"
 pygfc = ">=1.0.3,<2.0.0"
 zstandard = ">=0.15.2,<0.16.0"
 
@@ -118,7 +130,7 @@ http2 = ["h2 (>=3,<5)"]
 
 [[package]]
 name = "httpx"
-version = "0.18.2"
+version = "0.20.0"
 description = "The next generation HTTP client."
 category = "main"
 optional = false
@@ -126,13 +138,15 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 certifi = "*"
+charset-normalizer = "*"
 httpcore = ">=0.13.3,<0.14.0"
 rfc3986 = {version = ">=1.3,<2", extras = ["idna2008"]}
 sniffio = "*"
 
 [package.extras]
-brotli = ["brotlicffi (>=1.0.0,<2.0.0)"]
-http2 = ["h2 (>=3.0.0,<4.0.0)"]
+brotli = ["brotlicffi", "brotli"]
+cli = ["click (>=8.0.0,<9.0.0)", "rich (>=10.0.0,<11.0.0)", "pygments (>=2.0.0,<3.0.0)"]
+http2 = ["h2 (>=3,<5)"]
 
 [[package]]
 name = "idna"
@@ -190,7 +204,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "tqdm"
-version = "4.61.2"
+version = "4.62.3"
 description = "Fast, Extensible Progress Meter"
 category = "main"
 optional = false
@@ -206,20 +220,20 @@ telegram = ["requests"]
 
 [[package]]
 name = "typer"
-version = "0.3.2"
+version = "0.4.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-click = ">=7.1.1,<7.2.0"
+click = ">=7.1.1,<9.0.0"
 
 [package.extras]
-test = ["pytest-xdist (>=1.32.0,<2.0.0)", "pytest-sugar (>=0.9.4,<0.10.0)", "mypy (==0.782)", "black (>=19.10b0,<20.0b0)", "isort (>=5.0.6,<6.0.0)", "shellingham (>=1.3.0,<2.0.0)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (>=2.10.0,<3.0.0)", "coverage (>=5.2,<6.0)"]
 all = ["colorama (>=0.4.3,<0.5.0)", "shellingham (>=1.3.0,<2.0.0)"]
 dev = ["autoflake (>=1.3.1,<2.0.0)", "flake8 (>=3.8.3,<4.0.0)"]
 doc = ["mkdocs (>=1.1.2,<2.0.0)", "mkdocs-material (>=5.4.0,<6.0.0)", "markdown-include (>=0.5.1,<0.6.0)"]
+test = ["shellingham (>=1.3.0,<2.0.0)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (>=2.10.0,<3.0.0)", "coverage (>=5.2,<6.0)", "pytest-xdist (>=1.32.0,<2.0.0)", "pytest-sugar (>=0.9.4,<0.10.0)", "mypy (==0.910)", "black (>=19.10b0,<20.0b0)", "isort (>=5.0.6,<6.0.0)"]
 
 [[package]]
 name = "tzlocal"
@@ -249,7 +263,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f7dc0c81f3fa23b4959665c275406fbc51fc061b3815baa44a0a5d9f8f3681f3"
+content-hash = "56b94db73c6036e6b907e0e053480aa575ae0a61fcea4db7ab091ce5299f1fb7"
 
 [metadata.files]
 aioch = [
@@ -309,6 +323,10 @@ cffi = [
     {file = "cffi-1.14.6-cp39-cp39-win32.whl", hash = "sha256:eb9e2a346c5238a30a746893f23a9535e700f8192a68c07c0258e7ece6ff3728"},
     {file = "cffi-1.14.6-cp39-cp39-win_amd64.whl", hash = "sha256:818014c754cd3dba7229c0f5884396264d51ffb87ec86e927ef0be140bfdb0d2"},
     {file = "cffi-1.14.6.tar.gz", hash = "sha256:c9a875ce9d7fe32887784274dd533c57909b7b1dcadcc128a2ac21331a9765dd"},
+]
+charset-normalizer = [
+    {file = "charset-normalizer-2.0.4.tar.gz", hash = "sha256:f23667ebe1084be45f6ae0538e4a5a865206544097e4e8bbcacf42cd02a348f3"},
+    {file = "charset_normalizer-2.0.4-py3-none-any.whl", hash = "sha256:0c8911edd15d19223366a194a513099a302055a962bca2cec0f54b8b63175d8b"},
 ]
 click = [
     {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
@@ -370,13 +388,22 @@ colorama = [
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
 diamond-miner = [
-    {file = "diamond-miner-0.1.0.tar.gz", hash = "sha256:d43fd8578e3cdc637aefd5100a9b40e18aaa951d64ee5d70b35dceeaf9bc0916"},
-    {file = "diamond_miner-0.1.0-cp38-cp38-macosx_10_15_x86_64.whl", hash = "sha256:d877030e36280f90db08e1544c580e8aad32836f7bace91062652283c2dce7f8"},
-    {file = "diamond_miner-0.1.0-cp38-cp38-manylinux_2_12_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2010_x86_64.whl", hash = "sha256:0d8619111e7b6a1ad623734d0f91754b00a909a687620607e4de41d00a46dedc"},
-    {file = "diamond_miner-0.1.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:daae4b6ea5baed02bad199e2b4ec6fe7ee8d997846429cf822e5ddf3967d2aff"},
-    {file = "diamond_miner-0.1.0-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:2b1915da94a020f1ff9a988cc7348016ff00ff281545874702577db184285ccf"},
-    {file = "diamond_miner-0.1.0-cp39-cp39-manylinux_2_12_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2010_x86_64.whl", hash = "sha256:c33e113b79fe8f0dd0fe0cbc5391ad824a5e19e65402ccbbbeef2f85b985a0bd"},
-    {file = "diamond_miner-0.1.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:dd1cfdc3ba6b8be5ad12626307b8a278881f2946be1c286800af44ff3faddd09"},
+    {file = "diamond-miner-0.1.16.tar.gz", hash = "sha256:809c930b633f74a1c2712744ce34f77fd473bb423b2b9a719ea46e157d984443"},
+    {file = "diamond_miner-0.1.16-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:811c5433a28ddbeb3891e58bbc9bbffe698b9accc58a23c4771f541cd81fd6fa"},
+    {file = "diamond_miner-0.1.16-cp310-cp310-manylinux_2_12_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2010_x86_64.whl", hash = "sha256:1dcee27ae6fa5b37364b76ae6ea4df6cdb2efa636ec170f05a74554169a50c8a"},
+    {file = "diamond_miner-0.1.16-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:78bef112df77efc01ede8d36eecee1265baa2406ed5e1e9aad01c87d8ed9c53a"},
+    {file = "diamond_miner-0.1.16-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:7315581d3401faab4427cfc175629e15f87db36582698e4849e0ce6984fa178e"},
+    {file = "diamond_miner-0.1.16-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:f68f09ba1dc63c5d9db61280897c95eda1c785a4037c4e4d22c9c049843178a2"},
+    {file = "diamond_miner-0.1.16-cp38-cp38-macosx_10_16_x86_64.whl", hash = "sha256:fd89157d71726ea5330804d8a306da616c7990e97f92f3be01f318ff91698d33"},
+    {file = "diamond_miner-0.1.16-cp38-cp38-manylinux_2_12_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2010_x86_64.whl", hash = "sha256:28fa6cf27a3131323b985c0ddf8636f7c8e89b4fb22a42b1facd657068fbecac"},
+    {file = "diamond_miner-0.1.16-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1cb74eb63ae55f51ebdaaea12451429e52d38b70d1d622352beb935a519d7751"},
+    {file = "diamond_miner-0.1.16-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:ce77a9f1f3971afbec5107b40d2b97087349ff4bd7e60509e151d5673fcf3c0c"},
+    {file = "diamond_miner-0.1.16-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:63a008a7c9cb72d2bb3397091ce737d28e23f6ec591d9e67ce9cecb48d15f72c"},
+    {file = "diamond_miner-0.1.16-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:e9287127491518678835176cc052b7ae115ae899d8675d5a8babbad8d37c9932"},
+    {file = "diamond_miner-0.1.16-cp39-cp39-manylinux_2_12_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9ff2414205ada308e7f08951fbae3eec64a1ff3d79c09c4075450d10c219d4f6"},
+    {file = "diamond_miner-0.1.16-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8fe63d81ca827c0099f0e9965c18479465b14e89ef4307d5b3ad23297e96ab06"},
+    {file = "diamond_miner-0.1.16-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:65a104fd05da87b725affb9caad55556259942cf44be4a9954d1ae53ef4cb674"},
+    {file = "diamond_miner-0.1.16-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:47d9ca3d297db1913bd410fd24c885917af6e94627cd1ebc962b77a016a85508"},
 ]
 h11 = [
     {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},
@@ -387,8 +414,8 @@ httpcore = [
     {file = "httpcore-0.13.6.tar.gz", hash = "sha256:b0d16f0012ec88d8cc848f5a55f8a03158405f4bca02ee49bc4ca2c1fda49f3e"},
 ]
 httpx = [
-    {file = "httpx-0.18.2-py3-none-any.whl", hash = "sha256:979afafecb7d22a1d10340bafb403cf2cb75aff214426ff206521fc79d26408c"},
-    {file = "httpx-0.18.2.tar.gz", hash = "sha256:9f99c15d33642d38bce8405df088c1c4cfd940284b4290cacbfb02e64f4877c6"},
+    {file = "httpx-0.20.0-py3-none-any.whl", hash = "sha256:33af5aad9bdc82ef1fc89219c1e36f5693bf9cd0ebe330884df563445682c0f8"},
+    {file = "httpx-0.20.0.tar.gz", hash = "sha256:09606d630f070d07f9ff28104fbcea429ea0014c1e89ac90b4d8de8286c40e7b"},
 ]
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
@@ -437,12 +464,12 @@ sniffio = [
     {file = "sniffio-1.2.0.tar.gz", hash = "sha256:c4666eecec1d3f50960c6bdf61ab7bc350648da6c126e3cf6898d8cd4ddcd3de"},
 ]
 tqdm = [
-    {file = "tqdm-4.61.2-py2.py3-none-any.whl", hash = "sha256:5aa445ea0ad8b16d82b15ab342de6b195a722d75fc1ef9934a46bba6feafbc64"},
-    {file = "tqdm-4.61.2.tar.gz", hash = "sha256:8bb94db0d4468fea27d004a0f1d1c02da3cdedc00fe491c0de986b76a04d6b0a"},
+    {file = "tqdm-4.62.3-py2.py3-none-any.whl", hash = "sha256:8dd278a422499cd6b727e6ae4061c40b48fce8b76d1ccbf5d34fca9b7f925b0c"},
+    {file = "tqdm-4.62.3.tar.gz", hash = "sha256:d359de7217506c9851b7869f3708d8ee53ed70a1b8edbba4dbcb47442592920d"},
 ]
 typer = [
-    {file = "typer-0.3.2-py3-none-any.whl", hash = "sha256:ba58b920ce851b12a2d790143009fa00ac1d05b3ff3257061ff69dbdfc3d161b"},
-    {file = "typer-0.3.2.tar.gz", hash = "sha256:5455d750122cff96745b0dec87368f56d023725a7ebc9d2e54dd23dc86816303"},
+    {file = "typer-0.4.0-py3-none-any.whl", hash = "sha256:d81169725140423d072df464cad1ff25ee154ef381aaf5b8225352ea187ca338"},
+    {file = "typer-0.4.0.tar.gz", hash = "sha256:63c3aeab0549750ffe40da79a1b524f60e08a2cbc3126c520ebf2eeaf507f5dd"},
 ]
 tzlocal = [
     {file = "tzlocal-2.1-py2.py3-none-any.whl", hash = "sha256:e2cb6c6b5b604af38597403e9852872d7f534962ae2954c7f35efcb1ccacf4a4"},
