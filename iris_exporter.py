@@ -15,16 +15,13 @@ from diamond_miner.queries import GetLinks, GetNodes, results_table
 README = """
 # Iris data dumps
 
-File                                               | Description
--------------------------------------------------- |------------
-`measurement-uuid.json`                            | Measurement information (`GET /measurements/{measurement-uuid}`)
-`measurement-uuid__agent-uuid.nodes`               | Nodes (one per line)
-`measurement-uuid__agent-uuid.links`               | Links (one per line)
-`results__measurement-uuid__agent-uuid.clickhouse` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
-
-The ClickHouse dumps are compressed with Zstandard (https://facebook.github.io/zstd/) which is
-much faster than bzip2 and gzip while achieving similar compression ratios.
-To decompress the dumps, simply run `zstd -d results__...clickhouse.zst`.
+File                                                   | Description
+------------------------------------------------------ | -----------
+`measurement-uuid.json`                                | Measurement information (`GET /measurements/{measurement-uuid}`)
+`measurement-uuid__agent-uuid.nodes`                   | Nodes (one per line)
+`measurement-uuid__agent-uuid.links`                   | Links (one per line)
+`results__measurement-uuid__agent-uuid.sql`            | Table schema (`SHOW CREATE TABLE ...`)
+`results__measurement-uuid__agent-uuid.clickhouse.zst` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
 
 ## Schema
 
@@ -69,7 +66,7 @@ This allows us to drop invalid replies. As such the number of anomalous values i
 The `probe_protocol` column is added, to allow for multi-protocol measurements.
 """
 
-IRIS_URL = "https://iris.dioptra.io/api"
+IRIS_URL = "https://api.iris.dioptra.io"
 
 app = typer.Typer()
 
@@ -132,6 +129,26 @@ async def do_export_nodes(
     {GetNodes().statement(measurement_id)}
     INTO OUTFILE '{file}'
     FORMAT CSV
+    """
+    if not file.exists():
+        await clickhouse(host, database, query)
+
+
+async def do_export_schema(
+    host: str, database: str, destination: Path, measurement_id: str
+) -> None:
+    logging.info(
+        "export_schema host=%s database=%s destination=%s measurement_id=%s",
+        host,
+        database,
+        destination,
+        measurement_id,
+    )
+    file = (destination / results_table(measurement_id)).with_suffix(".sql")
+    query = f"""
+    SHOW CREATE TABLE {results_table(measurement_id)}
+    INTO OUTFILE '{file}'
+    FORMAT TabSeparatedRaw
     """
     if not file.exists():
         await clickhouse(host, database, query)
@@ -233,6 +250,9 @@ async def export(
 
     if export_tables:
         for measurement_id in measurement_ids:
+            futures.append(
+                do_export_schema(host, database, destination, measurement_id)
+            )
             futures.append(do_export_table(host, database, destination, measurement_id))
 
     await asyncio.gather(*futures)
