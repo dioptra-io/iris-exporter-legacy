@@ -5,7 +5,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E0C56BD4 \
         /etc/apt/sources.list.d/clickhouse.list \
     && apt-get update \
     && apt-get install -y -q --no-install-recommends \
-        clickhouse-client rsync zstd \
+        clickhouse-client rsync \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --upgrade poetry
