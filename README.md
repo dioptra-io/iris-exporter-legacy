@@ -1,19 +1,7 @@
 # iris-exporter
 
-Export Iris data.
-
-## Installation
-
-### Docker 🐳
+## Usage
 
 ```bash
-docker build -t iris-exporter .
-docker run iris-exporter --help
-```
-
-### Poetry 🐍
-
-```bash
-poetry install
-poetry run iris-exporter --help
+docker run ghcr.io/dioptra-io/iris-exporter:main --help
 ```
