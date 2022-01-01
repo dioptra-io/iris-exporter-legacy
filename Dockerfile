@@ -1,4 +1,4 @@
-FROM python:3.10.0
+FROM python:3.10.1
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E0C56BD4 \
     && echo "deb https://repo.clickhouse.tech/deb/stable/ main/" > \
