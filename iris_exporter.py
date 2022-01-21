@@ -79,8 +79,10 @@ def run_in_loop(f):
     return wrapper
 
 
-async def clickhouse(host: str, database: str, statement: str) -> None:
-    cmd = f'clickhouse-client --host={host} --database={database} --query="{statement}"'
+async def clickhouse(
+    host: str, database: str, user: str, password: str, statement: str
+) -> None:
+    cmd = f'clickhouse-client --host={host} --database={database} --user={user} --password={password} --query="{statement}"'
     proc = await asyncio.create_subprocess_shell(cmd)
     await proc.communicate()
 
@@ -95,7 +97,12 @@ async def wc(file: Path) -> int:
 
 
 async def do_export_links(
-    host: str, database: str, destination: Path, measurement_id: str
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
 ) -> None:
     logging.info(
         "export_links host=%s database=%s destination=%s measurement_id=%s",
@@ -111,11 +118,16 @@ async def do_export_links(
     FORMAT CSV
     """
     if not file.exists():
-        await clickhouse(host, database, query)
+        await clickhouse(host, database, user, password, query)
 
 
 async def do_export_nodes(
-    host: str, database: str, destination: Path, measurement_id: str
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
 ) -> None:
     logging.info(
         "export_nodes host=%s database=%s destination=%s measurement_id=%s",
@@ -131,11 +143,16 @@ async def do_export_nodes(
     FORMAT CSV
     """
     if not file.exists():
-        await clickhouse(host, database, query)
+        await clickhouse(host, database, user, password, query)
 
 
 async def do_export_schema(
-    host: str, database: str, destination: Path, measurement_id: str
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
 ) -> None:
     logging.info(
         "export_schema host=%s database=%s destination=%s measurement_id=%s",
@@ -151,11 +168,16 @@ async def do_export_schema(
     FORMAT TabSeparatedRaw
     """
     if not file.exists():
-        await clickhouse(host, database, query)
+        await clickhouse(host, database, user, password, query)
 
 
 async def do_export_table(
-    host: str, database: str, destination: Path, measurement_id: str
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
 ) -> None:
     logging.info(
         "export_table host=%s database=%s destination=%s measurement_id=%s",
@@ -171,7 +193,7 @@ async def do_export_table(
     FORMAT Native
     """
     if not file.exists():
-        await clickhouse(host, database, query)
+        await clickhouse(host, database, user, password, query)
 
 
 async def request(method, path, **kwargs):
@@ -217,6 +239,8 @@ async def export(
     export_tables: bool = typer.Option(True, is_flag=True),
     host: str = typer.Option("localhost", metavar="HOST"),
     database: str = typer.Option("default", metavar="DATABASE"),
+    user: str = typer.Option("default", metavar="USER"),
+    password: str = typer.Option("", metavar="PASSWORD"),
     destination: Path = typer.Option("exports", metavar="DESTINATION"),
 ):
     assert tag or uuid, "One of --tag or --uuid must be specified."
@@ -227,7 +251,7 @@ async def export(
         "username": os.environ["IRIS_USERNAME"],
         "password": os.environ["IRIS_PASSWORD"],
     }
-    res = await request("POST", "/profile/token", data=data)
+    res = await request("POST", "/auth/jwt/login", data=data)
     headers = {"Authorization": f"Bearer {res['access_token']}"}
 
     if tag:
@@ -237,23 +261,37 @@ async def export(
     info = await request("GET", f"/measurements/{uuid}", headers=headers)
     Path(f"{destination}/{uuid}.json").write_text(json.dumps(info, indent=4))
 
-    measurement_ids = [f"{uuid}__{agent['uuid']}" for agent in info["agents"]]
+    measurement_ids = [f"{uuid}__{agent['agent_uuid']}" for agent in info["agents"]]
     futures = []
 
     if export_links:
         for measurement_id in measurement_ids:
-            futures.append(do_export_links(host, database, destination, measurement_id))
+            futures.append(
+                do_export_links(
+                    host, database, user, password, destination, measurement_id
+                )
+            )
 
     if export_nodes:
         for measurement_id in measurement_ids:
-            futures.append(do_export_nodes(host, database, destination, measurement_id))
+            futures.append(
+                do_export_nodes(
+                    host, database, user, password, destination, measurement_id
+                )
+            )
 
     if export_tables:
         for measurement_id in measurement_ids:
             futures.append(
-                do_export_schema(host, database, destination, measurement_id)
+                do_export_schema(
+                    host, database, user, password, destination, measurement_id
+                )
             )
-            futures.append(do_export_table(host, database, destination, measurement_id))
+            futures.append(
+                do_export_table(
+                    host, database, user, password, destination, measurement_id
+                )
+            )
 
     await asyncio.gather(*futures)
 
