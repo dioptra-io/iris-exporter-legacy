@@ -208,7 +208,7 @@ async def find_uuid(headers: dict, tag: str) -> str:
     res = await request(
         "GET",
         "/measurements/",
-        params={"limit": 200, "tag": tag},
+        params={"limit": 200, "only_mine": False, "tag": tag},
         headers=headers,
     )
     res = [x for x in res["results"] if x.get("end_time")]
