@@ -216,11 +216,13 @@ async def find_uuid(headers: dict, tag: str) -> str:
 
 
 def start_time(measurement: dict) -> datetime:
-    return datetime.fromisoformat(measurement["start_time"])
+    if s := measurement["start_time"]:
+        return datetime.fromisoformat(s).replace(microsecond=0)
 
 
 def end_time(measurement: dict) -> datetime:
-    return datetime.fromisoformat(measurement["end_time"])
+    if s := measurement["end_time"]:
+        return datetime.fromisoformat(s).replace(microsecond=0)
 
 
 @app.command()
@@ -332,8 +334,8 @@ async def index(destination: Path = typer.Option("exports", metavar="DESTINATION
             md += template.format(
                 measurement["meta"]["uuid"].split("-")[0],
                 agent_uuid.split("-")[0],
-                measurement["meta"]["start_time"],
-                measurement["meta"]["end_time"],
+                str(start_time(measurement["meta"])),
+                str(end_time(measurement["meta"])),
                 str(end_time(measurement["meta"]) - start_time(measurement["meta"])),
                 agent["nodes"],
                 agent["links"],
