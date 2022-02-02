@@ -2,15 +2,14 @@
 import asyncio
 import json
 import logging
-import os
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
 from typing import Optional
 
-import httpx
 import typer
 from diamond_miner.queries import GetLinks, GetNodes, results_table
+from iris_client import AsyncIrisClient
 
 README = """
 # Iris data dumps
@@ -196,22 +195,12 @@ async def do_export_table(
         await clickhouse(host, database, user, password, query)
 
 
-async def request(method, path, **kwargs):
-    async with httpx.AsyncClient() as client:
-        req = await client.request(method, IRIS_URL + path, **kwargs)
-        req.raise_for_status()
-        return req.json()
-
-
-async def find_uuid(headers: dict, tag: str) -> str:
-    logging.info(f"Listing measurements with tag {tag}...")
-    res = await request(
-        "GET",
-        "/measurements/",
-        params={"limit": 200, "only_mine": False, "tag": tag},
-        headers=headers,
+async def find_uuid(client: AsyncIrisClient, tag: str) -> str:
+    logging.info("Listing measurements with tag %s...", tag)
+    measurements = await client.all(
+        "/measurements/", params=dict(only_mine=False, tag=tag)
     )
-    res = [x for x in res["results"] if x.get("end_time")]
+    res = [x for x in measurements if x.get("end_time")]
     return sorted(res, key=end_time)[-1]["uuid"]
 
 
@@ -248,54 +237,49 @@ async def export(
     assert tag or uuid, "One of --tag or --uuid must be specified."
     logging.basicConfig(level=logging.INFO)
 
-    logging.info("Authenticating...")
-    data = {
-        "username": os.environ["IRIS_USERNAME"],
-        "password": os.environ["IRIS_PASSWORD"],
-    }
-    res = await request("POST", "/auth/jwt/login", data=data)
-    headers = {"Authorization": f"Bearer {res['access_token']}"}
+    async with AsyncIrisClient() as client:
+        if tag:
+            uuid = await find_uuid(client, tag)
 
-    if tag:
-        uuid = await find_uuid(headers, tag)
+        logging.info("Getting measurement information...")
+        measurement = (await client.get(f"/measurements/{uuid}")).json()
+        Path(f"{destination}/{uuid}.json").write_text(json.dumps(measurement, indent=4))
 
-    logging.info("Getting measurement information...")
-    info = await request("GET", f"/measurements/{uuid}", headers=headers)
-    Path(f"{destination}/{uuid}.json").write_text(json.dumps(info, indent=4))
+        measurement_ids = [
+            f"{uuid}__{agent['agent_uuid']}" for agent in measurement["agents"]
+        ]
+        futures = []
 
-    measurement_ids = [f"{uuid}__{agent['agent_uuid']}" for agent in info["agents"]]
-    futures = []
-
-    if export_links:
-        for measurement_id in measurement_ids:
-            futures.append(
-                do_export_links(
-                    host, database, user, password, destination, measurement_id
+        if export_links:
+            for measurement_id in measurement_ids:
+                futures.append(
+                    do_export_links(
+                        host, database, user, password, destination, measurement_id
+                    )
                 )
-            )
 
-    if export_nodes:
-        for measurement_id in measurement_ids:
-            futures.append(
-                do_export_nodes(
-                    host, database, user, password, destination, measurement_id
+        if export_nodes:
+            for measurement_id in measurement_ids:
+                futures.append(
+                    do_export_nodes(
+                        host, database, user, password, destination, measurement_id
+                    )
                 )
-            )
 
-    if export_tables:
-        for measurement_id in measurement_ids:
-            futures.append(
-                do_export_schema(
-                    host, database, user, password, destination, measurement_id
+        if export_tables:
+            for measurement_id in measurement_ids:
+                futures.append(
+                    do_export_schema(
+                        host, database, user, password, destination, measurement_id
+                    )
                 )
-            )
-            futures.append(
-                do_export_table(
-                    host, database, user, password, destination, measurement_id
+                futures.append(
+                    do_export_table(
+                        host, database, user, password, destination, measurement_id
+                    )
                 )
-            )
 
-    await asyncio.gather(*futures)
+        await asyncio.gather(*futures)
 
 
 @app.command()
