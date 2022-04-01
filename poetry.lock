@@ -112,7 +112,7 @@ zstandard = ">=0.15.2,<0.18.0"
 
 [[package]]
 name = "dioptra-iris-client"
-version = "0.4.1"
+version = "0.4.2"
 description = "Python client for the Iris API."
 category = "main"
 optional = false
@@ -187,8 +187,8 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "pych-client"
-version = "0.2.8"
-description = ""
+version = "0.2.9"
+description = "A ClickHouse client for Python, with a command-line interface."
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
@@ -288,7 +288,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "e63ffe05f6720da203fdbd39612726c9459bd8b1dfeaaaef4700990a5d7f34bd"
+content-hash = "3300f47512de085d8eca258341aa06ca2c356f081dc1aa964912d24a12b08d93"
 
 [metadata.files]
 anyio = [
@@ -404,8 +404,8 @@ diamond-miner = [
     {file = "diamond_miner-0.8.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux_2_5_x86_64.manylinux1_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5a3fc7a91a53934dbed24b9bd35fb94210106dc088f5f26ba234dfc470949343"},
 ]
 dioptra-iris-client = [
-    {file = "dioptra-iris-client-0.4.1.tar.gz", hash = "sha256:242e3b5aef990597af66f31fb5c02749051028f6fa17cdb9c027496870c79e33"},
-    {file = "dioptra_iris_client-0.4.1-py3-none-any.whl", hash = "sha256:9361ac09d81090cd6ed658aaf6e488688fa7d70ff7eced51b8de910f485b61dd"},
+    {file = "dioptra-iris-client-0.4.2.tar.gz", hash = "sha256:3faeabdc3d63bbf6546eab61c4cb780e1bdcef49c9e155e10271170996cf212f"},
+    {file = "dioptra_iris_client-0.4.2-py3-none-any.whl", hash = "sha256:7b21067c4b4e9154f07e1f9894c4b94cfed90040b7e69d16de7d67e3aac010da"},
 ]
 h11 = [
     {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},
@@ -450,8 +450,8 @@ orjson = [
     {file = "orjson-3.6.6.tar.gz", hash = "sha256:55dd988400fa7fbe0e31407c683f5aaab013b5bd967167b8fe058186773c4d6c"},
 ]
 pych-client = [
-    {file = "pych-client-0.2.8.tar.gz", hash = "sha256:3f090c640e7b0ec40ad9f707a4fa9b26928fc3118c6ae6a7dfa910031342ea0b"},
-    {file = "pych_client-0.2.8-py3-none-any.whl", hash = "sha256:78a1d603d3a260131f9758d041a09820f163d3b2e7a73f336497208c2f37cf6d"},
+    {file = "pych-client-0.2.9.tar.gz", hash = "sha256:3dbce08fafa9af4eeb091b47283ff6e030cea1520ac0693ac43b3c8955c4d67b"},
+    {file = "pych_client-0.2.9-py3-none-any.whl", hash = "sha256:86f45f4d64259bbac0e6cee996a671141a6a9e65e7fa598beacbd3dd374e3770"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
