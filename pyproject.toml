@@ -8,7 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.10"
 diamond-miner = "^0.9.0"
-dioptra-iris-client = "^0.4.2"
+dioptra-iris-client = "^0.4.3"
 tqdm = "^4.63.1"
 typer = "^0.4.1"
 
