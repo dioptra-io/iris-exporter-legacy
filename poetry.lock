@@ -85,16 +85,16 @@ test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pr
 
 [[package]]
 name = "diamond-miner"
-version = "0.10.0"
+version = "1.0.2"
 description = "High-speed, Internet-scale, load-balanced paths discovery."
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 
 [package.dependencies]
-pych-client = ">=0.2.3,<0.3.0"
+pych-client = ">=0.3.0,<0.4.0"
 pygfc = ">=1.0.5,<2.0.0"
-zstandard = ">=0.15.2,<0.18.0"
+zstandard = ">=0.15.2,<0.19.0"
 
 [[package]]
 name = "dioptra-iris-client"
@@ -164,17 +164,17 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "pych-client"
-version = "0.2.10"
+version = "0.3.1"
 description = "A ClickHouse client for Python, with a command-line interface."
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-httpx = ">=0.21.0"
+httpx = ">=0.23.0,<0.24.0"
 
 [package.extras]
-orjson = ["orjson (>=3.6.6,<4.0.0)"]
+orjson = ["orjson (>=3.6.7,<4.0.0)"]
 
 [[package]]
 name = "pycparser"
@@ -265,7 +265,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "8eb515f05e45e6ed5a379ce6e150a4f8326fb4ef49a9309e9e33a29d4acf87f0"
+content-hash = "df38f7c253915b8f8c5286791a8313cc0af022305affb6f645e4f538dfa1f95a"
 
 [metadata.files]
 anyio = [
@@ -363,10 +363,10 @@ cryptography = [
     {file = "cryptography-36.0.1.tar.gz", hash = "sha256:53e5c1dc3d7a953de055d77bef2ff607ceef7a2aac0353b5d630ab67f7423638"},
 ]
 diamond-miner = [
-    {file = "diamond-miner-0.10.0.tar.gz", hash = "sha256:66f5fb4882264c5fbbc04620a85a984a34eeed87835ff6708e8f43c2993ee011"},
-    {file = "diamond_miner-0.10.0-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:7547c11953eacdfeb467066dd84c81dba92c26eccbe4238aab8216153ea545a5"},
-    {file = "diamond_miner-0.10.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c05490ffe84610e41c961225c34c96b452dec36f5931cdf9278bee6adaf28365"},
-    {file = "diamond_miner-0.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7aa4ad0dbbe726d55682b59c5325789911a4baa2f1ece387c1c5da16fb5270cf"},
+    {file = "diamond-miner-1.0.2.tar.gz", hash = "sha256:173aa8d4c9d1c6a1444a1e3106adbf33b40cf3429ba049cfaa46ad08caecb73d"},
+    {file = "diamond_miner-1.0.2-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:75a085ec97a11219f5700a5f2d82f1b7866267779bd4dc79add6b9e58f6d3f82"},
+    {file = "diamond_miner-1.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2c3e90a99ba9bb35982d3ab50a8c3a613c01b4f933b9a1160a57f8bd2d5c4e60"},
+    {file = "diamond_miner-1.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a81c5c560dd37aff2b149e8d243010292c9a734fb441802c1178a8daf700dfca"},
 ]
 dioptra-iris-client = [
     {file = "dioptra-iris-client-0.4.5.tar.gz", hash = "sha256:028b84eac59fb61b2f93f65739ccf36a8615a6c1272957920cd54a0deb431b3f"},
@@ -389,8 +389,8 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 pych-client = [
-    {file = "pych-client-0.2.10.tar.gz", hash = "sha256:28828c26942986806bf1b37bee1ad85c1ce66863376302dff185c2c9d3cbfc7c"},
-    {file = "pych_client-0.2.10-py3-none-any.whl", hash = "sha256:06855f3cb6fb6615347c85a4f0b21dba862636f1768a58218fbee9deafff2b4a"},
+    {file = "pych-client-0.3.1.tar.gz", hash = "sha256:9770ab9370ecf95c2d51ebcd7c0af81b0a0871fda1e7bc651e0e5d6bcf9af2d7"},
+    {file = "pych_client-0.3.1-py3-none-any.whl", hash = "sha256:d922335f0e5299222feca06ac8eb93074fc77393d0b84dc0e94a418a05cedeab"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
