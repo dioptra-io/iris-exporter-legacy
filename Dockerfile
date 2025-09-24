@@ -1,8 +1,10 @@
 FROM python:3.10
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E0C56BD4 \
-    && echo "deb https://repo.clickhouse.tech/deb/stable/ main/" > \
-        /etc/apt/sources.list.d/clickhouse.list \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gnupg ca-certificates wget \
+    && wget -qO- https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG | gpg --dearmor -o /usr/share/keyrings/clickhouse.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/clickhouse.gpg] https://repo.clickhouse.tech/deb/stable/ main/" \
+        > /etc/apt/sources.list.d/clickhouse.list \
     && apt-get update \
     && apt-get install -y -q --no-install-recommends \
         clickhouse-client rsync \
