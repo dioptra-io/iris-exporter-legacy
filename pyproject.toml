@@ -12,7 +12,7 @@ dioptra-iris-client = "^0.5.1"
 tqdm = "^4.64.0"
 typer = "^0.6.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 
 [tool.poetry.scripts]
 iris-exporter = 'iris_exporter:app'
