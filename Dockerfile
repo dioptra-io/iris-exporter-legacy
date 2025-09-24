@@ -1,7 +1,7 @@
 FROM python:3.10
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gnupg ca-certificates wget \
+        gpg ca-certificates wget \
     && wget -qO- https://repo.clickhouse.tech/CLICKHOUSE-KEY.GPG | gpg --dearmor -o /usr/share/keyrings/clickhouse.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/clickhouse.gpg] https://repo.clickhouse.tech/deb/stable/ main/" \
         > /etc/apt/sources.list.d/clickhouse.list \
