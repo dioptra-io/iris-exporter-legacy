@@ -1,7 +1,6 @@
 FROM python:3.10
 
 # Install base deps and ClickHouse key securely
-# Install base deps and ClickHouse key securely
 RUN apt-get update && apt-get install -y --no-install-recommends \
         wget gpg ca-certificates \
     && mkdir -p /etc/apt/keyrings \
@@ -9,12 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         | gpg --dearmor -o /etc/apt/keyrings/clickhouse-keyring.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" \
         > /etc/apt/sources.list.d/clickhouse.list
-
-# Install ClickHouse client and rsync
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        clickhouse-client rsync \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install ClickHouse client and rsync
 RUN apt-get update \
