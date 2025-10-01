@@ -225,23 +225,14 @@ async def export(
     uuid: Optional[str] = typer.Option(
         None, metavar="UUID", help="Export the measurement with the specified UUID."
     ),
-    export_links: bool = typer.Option(
-        True,
-        "--export-links/--no-export-links",
-        help="Export links (default: enabled).",
-        is_flag=True,
+    export_links = typer.Option(
+        True, "--export-links/--no-export-links", help="Export links (default: enabled)."
     ),
-    export_nodes: bool = typer.Option(
-        True,
-        "--export-nodes/--no-export-nodes",
-        help="Export nodes (default: enabled).",
-        is_flag=True,
+    export_nodes = typer.Option(
+        True, "--export-nodes/--no-export-nodes", help="Export nodes (default: enabled)."
     ),
-    export_tables: bool = typer.Option(
-        True,
-        "--export-tables/--no-export-tables",
-        help="Export tables (default: enabled).",
-        is_flag=True,
+    export_tables = typer.Option(
+        True, "--export-tables/--no-export-tables", help="Export tables (default: enabled)."
     ),
     host: str = typer.Option("localhost", metavar="HOST"),
     database: str = typer.Option("default", metavar="DATABASE"),
