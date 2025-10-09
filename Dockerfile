@@ -1,10 +1,17 @@
 FROM python:3.10
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E0C56BD4 \
-    && echo "deb https://repo.clickhouse.tech/deb/stable/ main/" > \
-        /etc/apt/sources.list.d/clickhouse.list \
-    && apt-get update \
-    && apt-get install -y -q --no-install-recommends \
+# Install base deps and ClickHouse key securely
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        wget gpg ca-certificates \
+    && mkdir -p /etc/apt/keyrings \
+    && wget -qO- https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key \
+        | gpg --dearmor -o /etc/apt/keyrings/clickhouse-keyring.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" \
+        > /etc/apt/sources.list.d/clickhouse.list
+
+# Install ClickHouse client and rsync
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         clickhouse-client rsync \
     && rm -rf /var/lib/apt/lists/*
 
@@ -16,7 +23,7 @@ WORKDIR /app
 COPY poetry.lock poetry.lock
 COPY pyproject.toml pyproject.toml
 
-RUN poetry install --no-dev --no-root \
+RUN poetry install --without dev --no-root \
     && rm -rf /root/.cache/*
 
 COPY iris_exporter.py iris_exporter.py
