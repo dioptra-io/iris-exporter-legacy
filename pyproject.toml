@@ -6,9 +6,9 @@ authors = ["Maxime Mouchet <max@maxmouchet.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.14"
 diamond-miner = "^1.1.2"
-dioptra-iris-client = "^0.5.2"
+dioptra-iris-client = "^0.5.4"
 tqdm = "^4.64.0"
 typer = "^0.16.1"
 
