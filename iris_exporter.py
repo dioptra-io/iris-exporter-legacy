@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-from diamond_miner.queries import GetLinks, GetNodes, results_table
+from diamond_miner.queries import GetLinks, GetNodes, results_table, links_table
 from iris_client import AsyncIrisClient
 
 README = """
@@ -19,10 +19,12 @@ File                                                   | Description
 `measurement-uuid.json`                                | Measurement information (`GET /measurements/{measurement-uuid}`)
 `measurement-uuid__agent-uuid.nodes`                   | Nodes (one per line)
 `measurement-uuid__agent-uuid.links`                   | Links (one per line)
-`results__measurement-uuid__agent-uuid.sql`            | Table schema (`SHOW CREATE TABLE ...`)
+`results__measurement-uuid__agent-uuid.sql`            | Results table schema (`SHOW CREATE TABLE ...`)
 `results__measurement-uuid__agent-uuid.clickhouse.zst` | Raw ClickHouse dump (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
+`links__measurement-uuid__agent-uuid.sql`              | Links table schema (`SHOW CREATE TABLE ...`)
+`links__measurement-uuid__agent-uuid.clickhouse.zst`   | Raw ClickHouse dump of links table (`SELECT * FROM ... INTO OUTFILE ... FORMAT Native`)
 
-## Schema
+## Results Schema
 
 Column              | Type          | Comments
 --------------------|---------------|---------
@@ -43,6 +45,27 @@ Column              | Type          | Comments
 `reply_mpls_labels` | Array(UInt32) |
 `rtt`               | Float64       | Float32 since 16/05/2021
 `round`             | UInt8         |
+
+## Links Schema
+
+Column             | Type   | Comments
+-------------------|--------|--------------------------------------------------
+`probe_protocol`   | UInt8  |
+`probe_src_addr`   | IPv6   |
+`probe_dst_prefix` | IPv6   |
+`probe_dst_addr`   | IPv6   |
+`probe_src_port`   | UInt16 |
+`probe_dst_port`   | UInt16 |
+`near_round`       | UInt8  |
+`far_round`        | UInt8  |
+`near_ttl`         | UInt8  |
+`far_ttl`          | UInt8  |
+`near_addr`        | IPv6   |
+`far_addr`         | IPv6   |
+`is_destination`   | UInt8  | Materialized: near_addr or far_addr equals probe_dst_addr
+`is_inter_round`   | UInt8  | Materialized: near_round != far_round
+`is_partial`       | UInt8  | Materialized: near_addr or far_addr is ::
+`is_virtual`       | UInt8  | Materialized: near_addr and far_addr are ::
 
 ## Changelog
 
@@ -195,6 +218,56 @@ async def do_export_table(
         await clickhouse(host, database, user, password, query)
 
 
+async def do_export_links_schema(
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
+) -> None:
+    logging.info(
+        "export_links_schema host=%s database=%s destination=%s measurement_id=%s",
+        host,
+        database,
+        destination,
+        measurement_id,
+    )
+    file = (destination / links_table(measurement_id)).with_suffix(".sql")
+    query = f"""
+    SHOW CREATE TABLE {links_table(measurement_id)}
+    INTO OUTFILE '{file}'
+    FORMAT TabSeparatedRaw
+    """
+    if not file.exists():
+        await clickhouse(host, database, user, password, query)
+
+
+async def do_export_links_table(
+    host: str,
+    database: str,
+    user: str,
+    password: str,
+    destination: Path,
+    measurement_id: str,
+) -> None:
+    logging.info(
+        "export_links_table host=%s database=%s destination=%s measurement_id=%s",
+        host,
+        database,
+        destination,
+        measurement_id,
+    )
+    file = (destination / links_table(measurement_id)).with_suffix(".clickhouse.zst")
+    query = f"""
+    SELECT * FROM {links_table(measurement_id)}
+    INTO OUTFILE '{file}'
+    FORMAT Native
+    """
+    if not file.exists():
+        await clickhouse(host, database, user, password, query)
+
+
 async def find_uuid(client: AsyncIrisClient, tag: str) -> str:
     logging.info("Listing measurements with tag %s...", tag)
     measurements = await client.all(
@@ -290,6 +363,16 @@ async def export(
                 )
                 futures.append(
                     do_export_table(
+                        host, database, user, password, destination, measurement_id
+                    )
+                )
+                futures.append(
+                    do_export_links_schema(
+                        host, database, user, password, destination, measurement_id
+                    )
+                )
+                futures.append(
+                    do_export_links_table(
                         host, database, user, password, destination, measurement_id
                     )
                 )
