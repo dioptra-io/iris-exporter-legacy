@@ -304,22 +304,19 @@ async def export(
     ),
     export_links: bool = typer.Option(
         True,
-        "--export-links",
-        "--no-export-links",
+        "--export-links/--no-export-links",
         help="Export links (default: enabled)."
-    ),
+        ),
     export_nodes: bool = typer.Option(
         True,
-        "--export-nodes",
-        "--no-export-nodes",
+        "--export-nodes/--no-export-nodes",
         help="Export nodes (default: enabled)."
-    ),
+        ),
     export_tables: bool = typer.Option(
         True,
-        "--export-tables",
-        "--no-export-tables",
+        "--export-tables/--no-export-tables",
         help="Export tables (default: enabled)."
-    ),
+),
     host: str = typer.Option("localhost", metavar="HOST"),
     database: str = typer.Option("default", metavar="DATABASE"),
     user: str = typer.Option("default", metavar="USER"),
