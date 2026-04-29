@@ -191,6 +191,8 @@ async def do_export_schema(
     """
     if not file.exists():
         await clickhouse(host, database, user, password, query)
+        lines = file.read_text().splitlines()
+        file.write_text("\n".join(lines[:-2]) + "\n")
 
 
 async def do_export_table(
@@ -241,6 +243,8 @@ async def do_export_links_schema(
     """
     if not file.exists():
         await clickhouse(host, database, user, password, query)
+        lines = file.read_text().splitlines()
+        file.write_text("\n".join(lines[:-2]) + "\n")
 
 
 async def do_export_links_table(
